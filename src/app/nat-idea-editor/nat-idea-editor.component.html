@@ -1,0 +1,35 @@
+<table>
+  <tr>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+  <tr *ngFor="let slider of sliders; let i = index">
+    <td>{{ slider.name }}</td>
+    <td>
+      <img [src]="slider.getImageUrl()" alt="Slider Image" width="auto" height="100%" draggable="false">
+    </td>
+    <td>
+      <div #customLabelDiv>{{ slider.getCurrentModifier() }}</div>
+    </td>
+    <td>
+      <mat-slider
+          *ngIf="slider.min !== slider.max"
+          [max]="slider.max" [min]="1" [step]="slider.step" [showTickMarks]="slider.showTicks">
+        <input matSliderThumb [(ngModel)]="slider.value" (ngModelChange)="onValueChange($event, i)">
+      </mat-slider>
+    </td>
+    <td class="faded">{{ slider.getCurrentCost() }}</td>
+    <td  #realworldcostcell>{{ getRealWorldCost(i, realworldcostcell) }}</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td>
+      {{ getTotalCost() }}
+    </td>
+  </tr>
+</table>
