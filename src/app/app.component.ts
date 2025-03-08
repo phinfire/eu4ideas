@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { NatIdeaEditorComponent } from './nat-idea-editor/nat-idea-editor.component';
+import { IdeaModifierTreeComponent } from './idea-modifier-tree/idea-modifier-tree.component';
+import { NatIdeaViewComponent } from './nat-idea-view/nat-idea-view.component';
 
 @Component({
   selector: 'app-root',
-  imports: [NatIdeaEditorComponent],
+  imports: [NatIdeaViewComponent, IdeaModifierTreeComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

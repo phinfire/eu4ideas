@@ -21,20 +21,6 @@ export class EU4Service {
     private category2IdeaKeys: Map<string,string[]> = new Map();
 
     constructor() {
-        fetch("https://codingafterdark.de/ide/custom_ideas.zip")
-            .then(response => response.blob())
-            .then(data => {
-                const zip = new JSZip();
-                Jomini.initialize().then((parser) => {
-                    zip.loadAsync(data).then((contents) => {
-                        for (const key in contents.files) {
-                            contents.files[key].async("text").then((text) => {
-                                this.extractIdeas(parser.parseText(text));
-                            });
-                        }
-                    });
-                });
-            });
         fetch("https://codingafterdark.de/ide/modifiers.json?" + new Date().getTime())
             .then(response => response.json())
             .then(data => {
@@ -60,7 +46,22 @@ export class EU4Service {
                     }
                 }
 
-            });
+            }).then(() => {
+                fetch("https://codingafterdark.de/ide/custom_ideas.zip")
+                    .then(response => response.blob())
+                    .then(data => {
+                        const zip = new JSZip();
+                        Jomini.initialize().then((parser) => {
+                            zip.loadAsync(data).then((contents) => {
+                                for (const key in contents.files) {
+                                    contents.files[key].async("text").then((text) => {
+                                        this.extractIdeas(parser.parseText(text));
+                                    });
+                                }
+                            });
+                        });
+                    });
+                });
     }
 
     public getTypeOfIdea(ideaKey: string) {

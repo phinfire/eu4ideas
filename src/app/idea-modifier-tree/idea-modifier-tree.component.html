@@ -1,1 +1,11 @@
-<p>idea-modifier-tree works!</p>
+<mat-tree #tree [dataSource]="treeData" [childrenAccessor]="childrenAccessor">
+    <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding style="user-select: none;" (click)="onLeafNodeClick(node)">
+      <img [src]="getImageUrl(node)" alt="Node Icon" width="48" height="48" style="margin-right: 8px;">
+      <span [ngClass]="{'selected-label': leafIsSelected(node)}" matTooltip="{{ node.key }}">{{ getNodeLabel(node) }}</span>
+    </mat-tree-node>
+    <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding matTreeNodeToggle
+                   [cdkTreeNodeTypeaheadLabel]="node.key" style="user-select: none;">
+        <mat-icon class="mat-icon-rtl-mirror">{{tree.isExpanded(node) ? 'expand_more' : 'chevron_right'}}</mat-icon>
+      <span [ngClass]="{'selected-label': leafIsSelected(node)}" matTooltip="Ideas">{{node.key}}</span>
+    </mat-tree-node>
+  </mat-tree>

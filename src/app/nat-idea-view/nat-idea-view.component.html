@@ -1,1 +1,63 @@
-<p>nat-idea-view works!</p>
+<div class="nat-idea-table-container">
+  <table>
+    <tbody cdkDropList (cdkDropListDropped)="drop($event)">
+      <ng-container *ngFor="let slider of sliders; let i = index">
+        <tr cdkDrag class="parent-slider">
+          <td *ngIf="i === 0" class="idea-kind-cell">Traditions</td>
+          <td *ngIf="i === 2" class="idea-kind-cell">Ideas</td>
+          <td *ngIf="i === 9" class="idea-kind-cell">Ambitions</td>
+          <td *ngIf="i !== 0 && i !== 2 && i !== 9" class="idea-kind-cell"></td>
+          <td class="idea-name" cdkDragHandle>{{ slider.getName() }}</td>
+          <td cdkDragHandle>
+            <img [src]="slider.getImageUrl()" alt="Slider Image" width="auto" height="100%" draggable="false">
+          </td>
+          <td cdkDragHandle>
+            <div>{{ slider.getCurrentModifier() }}</div>
+          </td>
+          <td>
+            <mat-slider
+                *ngIf="slider.min !== slider.max"
+                [max]="slider.max" [min]="1" [step]="slider.step" [showTickMarks]="slider.showTicks">
+              <input matSliderThumb [(ngModel)]="slider.value">
+            </mat-slider>
+          </td>
+          <td class="faded">{{ slider.getCurrentCost() }}</td>
+          <td #realworldcostcell>{{ getRealWorldCost(i, realworldcostcell) }}</td>
+
+          <ng-template cdkDragPreview>
+            <tr class="drag-preview">
+              <td class="idea-name">{{ slider.getName() }}</td>
+              <td>
+                <img [src]="slider.getImageUrl()" alt="Slider Image" width="auto" height="100%" draggable="false">
+              </td>
+            </tr>
+          </ng-template>
+        </tr>
+
+        <!-- Child sliders -->
+        <tr *ngFor="let childSlider of getChildren(slider)" class="child-slider">
+          <td></td>
+          <td class="idea-name">{{ childSlider.getName() }}</td>
+          <td>
+            <img [src]="childSlider.getImageUrl()" alt="Child Slider Image" width="auto" height="100%" draggable="false">
+          </td>
+          <td>
+            <div>{{ childSlider.getCurrentModifier() }}</div>
+          </td>
+          <td colspan="3"></td>
+        </tr>
+      </ng-container>
+    </tbody>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Total Cost:</td>
+      <td class="total-cell">
+        {{ getTotalCost() }}
+      </td>
+    </tr>
+  </table>
+</div>
