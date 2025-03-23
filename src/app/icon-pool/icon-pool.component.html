@@ -1,0 +1,19 @@
+<div>
+    <mat-form-field class="filter-field">
+      <mat-label>Filter</mat-label>
+      <input matInput type="text" [(ngModel)]="filterText">
+      <button *ngIf="filterText" matSuffix mat-icon-button aria-label="Clear" (click)="filterText=''">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+  </div>
+  <div class="icon-pool">
+    <img *ngFor="let icon of getIcons()" 
+         [src]="icon.imageUrl" 
+         [matTooltip]="icon.name" 
+         alt=":(" 
+         [title]="icon.key" 
+         [ngClass]="{ 'selected': isSelected(icon.key), 'not-selected': !isSelected(icon.key) }"
+         (click)="onIconClick(icon.key)" 
+         draggable="false">
+  </div>

@@ -1,0 +1,32 @@
+<cdk-accordion class="accordion">
+  <cdk-accordion-item *ngFor="let item of items; let index = index" class="accordion-item">
+    <button
+      class="accordion-item-header"
+      (click)="toggleAccordion(index)"
+      tabindex="0"
+      [attr.id]="'accordion-header-' + index"
+      [attr.aria-expanded]="expandedIndex === index"
+      [attr.aria-controls]="'accordion-body-' + index">
+      {{ item }}
+      <span class="accordion-item-description">
+        Click to {{ expandedIndex === index ? 'close' : 'open' }}
+      </span>
+    </button>
+    <div
+      *ngIf="expandedIndex === index"
+      class="accordion-item-body"
+      role="region"
+      [attr.id]="'accordion-body-' + index"
+      [attr.aria-labelledby]="'accordion-header-' + index">
+      <ng-container *ngIf="index !== 1">
+        <app-icon-pool [iconProvider]="nationProvider" [connector]="nationSelectConnector"></app-icon-pool>
+      </ng-container>
+      <ng-container *ngIf="index === 1">
+        <div>
+          <app-icon-pool [iconProvider]="eu4.getIdeaIconProvider()" [connector]="ideasConnector"></app-icon-pool>
+        </div>
+      </ng-container>
+    </div>
+  </cdk-accordion-item>
+</cdk-accordion>
+<app-nat-idea-view [ideasConnector]="ideasConnector"></app-nat-idea-view>

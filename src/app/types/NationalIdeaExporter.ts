@@ -1,4 +1,4 @@
-import { IIdea } from "./IIdea";
+import { IIdea } from "./game/IIdea";
 
 export class NationalIdeaExporter {
 

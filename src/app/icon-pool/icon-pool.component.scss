@@ -1,0 +1,33 @@
+.icon-pool {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(64px, 100%), 1fr));
+    gap: 5px;
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+  }
+  
+.icon-pool img {
+    object-fit: cover;
+    width: 64px;
+    height: auto;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.selected {
+    border: 1px solid var(--font-color);
+}
+
+.not-selected {
+    border: 1px solid var(--background-color-2);
+}
+
+.selected:hover {
+    border: 1px solid var(--background-color-2);
+}
+
+.not-selected:hover {
+    border: 1px solid var(--font-color);
+}

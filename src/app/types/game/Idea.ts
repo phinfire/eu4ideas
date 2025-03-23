@@ -1,13 +1,19 @@
+import { Mana } from "./EU4Service";
 import { IIdea } from "./IIdea";
+import { Modifier } from "./Modifier";
 
 export class Idea implements IIdea {
 
-    constructor(private key: string, private modifier: number, private costPerLevel: number[]) {
+    constructor(private modifier: Modifier, private costPerLevel: number[]) {
 
     }
 
+    public getMana() {
+        return this.modifier.getMana();
+    }
+
     public getKey() {
-        return this.key;
+        return this.modifier.getKey();
     }
 
     public getCostAtLevel(level: number) {
@@ -19,7 +25,7 @@ export class Idea implements IIdea {
     }
 
     public getModifierAtLevel(level: number) {
-        return this.modifier * level;
+        return this.modifier.getModifierBaseValue() * level;
     }
         
 }

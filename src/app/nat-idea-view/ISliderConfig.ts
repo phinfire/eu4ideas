@@ -1,12 +1,9 @@
-import { EU4Service, NumberKind } from "../types/EU4Service";
-import { IIdea } from "../types/IIdea";
+import { EU4Service, NumberKind } from "../types/game/EU4Service";
+import { IIdea } from "../types/game/IIdea";
 
 export interface ISliderConfig {
   value: number;
-  min: number;
   max: number;
-  step: number;
-  showTicks: boolean;
 
   getKey(): string;
   getImageUrl(): string;
@@ -16,10 +13,7 @@ export interface ISliderConfig {
 }
 
 export class SliderConfig implements ISliderConfig {
-  min: number = 1
   max: number;
-  step: number = 1;
-  showTicks: boolean = true;
 
   constructor(private idea: IIdea, private eu4: EU4Service, public value: number) {
     this.max = idea.getMaxCustomLevel();

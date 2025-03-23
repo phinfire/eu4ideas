@@ -2,6 +2,16 @@ import { Injectable } from "@angular/core";
 import { Jomini } from "jomini";
 import JSZip from "jszip";
 import { Idea } from "./Idea";
+import { FourteenFortyFourProvider } from "./FourteenFortyFourProvider";
+import { Modifier } from "./Modifier";
+import { IIconProvider } from "../keyedIcons/IIconProvider";
+import { KeyedIcon } from "../keyedIcons/KeyedIcon";
+
+export enum Mana {
+    ADM = "ADM",
+    DIP = "DIP",
+    MIL = "MIL"
+}
 
 export enum NumberKind {
     CONSTANT,
@@ -12,30 +22,35 @@ export enum NumberKind {
 @Injectable({providedIn: 'root'})
 export class EU4Service {
 
+    private static DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL = [0, 5, 15, 30]
+
+    private rootRootUrl = "https://codingafterdark.de/";
     private readonly rootUrl = "https://codingafterdark.de/ide/";
 
     private ideas: Map<string,Map<string,Idea>> = new Map();
-    private idea2Category: Map<string,string> = new Map();
-    private idea2NumberKind: Map<string,NumberKind> = new Map();
+    private idea2ModifierIntepretation: Map<string,NumberKind> = new Map();
     private idea2Localisation: Map<string,string> = new Map();
-    private category2IdeaKeys: Map<string,string[]> = new Map();
+    private category2IdeaKeys: Map<Mana,string[]> = new Map();
+    private ftffp: FourteenFortyFourProvider;
 
     constructor() {
+        this.ftffp = new FourteenFortyFourProvider();
         fetch("https://codingafterdark.de/ide/modifiers.json?" + new Date().getTime())
             .then(response => response.json())
             .then(data => {
-                for (let category of Object.keys(data)) {
-                    for (let ideaKey of Object.keys(data[category])) {
-                        const kindString = data[category][ideaKey].kind;
-                        const loc = data[category][ideaKey].loc;
-                        this.idea2Category.set(ideaKey, category);
+                for (let categoryString of Object.keys(data)) {
+                    const category = categoryString == "ADM" ? Mana.ADM : categoryString == "DIP" ? Mana.DIP : Mana.MIL;
+                    const ideas = data[categoryString];
+                    for (let ideaKey of Object.keys(ideas)) {
+                        const kindString = ideas[ideaKey].kind;
+                        const loc = ideas[ideaKey].loc;
                         this.idea2Localisation.set(ideaKey, loc);
                         if (kindString == "m") {
-                            this.idea2NumberKind.set(ideaKey, NumberKind.MULTIPLICATIVE);
+                            this.idea2ModifierIntepretation.set(ideaKey, NumberKind.MULTIPLICATIVE);
                         } else if (kindString == "a") {
-                            this.idea2NumberKind.set(ideaKey, NumberKind.ADDITIVE);
+                            this.idea2ModifierIntepretation.set(ideaKey, NumberKind.ADDITIVE);
                         } else if (kindString == "c") {
-                            this.idea2NumberKind.set(ideaKey, NumberKind.CONSTANT);
+                            this.idea2ModifierIntepretation.set(ideaKey, NumberKind.CONSTANT);
                         } else {
                             throw new Error("Unknown number kind: " + kindString);
                         }
@@ -64,15 +79,16 @@ export class EU4Service {
                 });
     }
 
+    public get1444Provider() {
+        return this.ftffp;
+    }
+
     public getTypeOfIdea(ideaKey: string) {
-        return this.idea2NumberKind.get(ideaKey)!;
+        return this.idea2ModifierIntepretation.get(ideaKey)!;
     }
 
     public localizeIdea(ideaKey: string) {
-        if (this.idea2Localisation.has(ideaKey)) {
-            return this.idea2Localisation.get(ideaKey)!;
-        }
-        return ideaKey;
+        return this.idea2Localisation.get(ideaKey) || ideaKey;
     }
 
     public extractIdeas(parsed: any) {
@@ -81,16 +97,17 @@ export class EU4Service {
             for (let natIdeaName of Object.keys(parsed[key]).filter(k => k != "category")) {
                 const ideaData = parsed[key][natIdeaName];
                 const maxLevel = ideaData.max_level ? parseInt(ideaData.max_level) : 4;
-                const costPerLevel = [];
+                const costPerLevel: number[] = [];
                 for (let i = 1; i <= maxLevel; i++) {
                     if (ideaData["level_cost_" + i]) {
                         costPerLevel.push(parseInt(ideaData["level_cost_" + i]));
-                    } else if (i == 1) {
-                        costPerLevel.push(0);
+                    } else {
+                        costPerLevel.push(EU4Service.DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL[i-1]);
                     }
                 }
                 const modifierIdeaKey = Object.keys(ideaData).find(k => !k.startsWith("level_cost") && k != "max_level")!;
-                const idea = new Idea(modifierIdeaKey, parseFloat(ideaData[modifierIdeaKey]), costPerLevel);
+                const mana = category == "ADM" ? Mana.ADM : category == "DIP" ? Mana.DIP : Mana.MIL;
+                const idea = new Idea(new Modifier(mana, modifierIdeaKey, parseFloat(ideaData[modifierIdeaKey])), costPerLevel);
                 this.addIdea(category, modifierIdeaKey, idea);
             }
         }
@@ -121,7 +138,7 @@ export class EU4Service {
 
     public waitUntilReady() {
         return new Promise((resolve, reject) => {
-            if (this.ideas.size > 0 && this.idea2Category.size > 0 && this.idea2NumberKind.size > 0 && this.idea2Localisation.size > 0) {
+            if (this.ideas.size > 0 && this.idea2ModifierIntepretation.size > 0 && this.idea2Localisation.size > 0) {
                 resolve(null);
             } else {
                 setTimeout(() => {
@@ -147,5 +164,37 @@ export class EU4Service {
             }
         }
         throw new Error("Idea not found: " + key);
+    }
+
+    public getManaSymbol(mana: Mana) {
+        if (mana == Mana.ADM) {
+            return this.rootRootUrl + "mk-ideas/icon_powers_administrative.webp";
+        }
+        if (mana == Mana.DIP) {
+            return this.rootRootUrl + "mk-ideas/icon_powers_diplomatic.webp";
+        }
+        if (mana == Mana.MIL) {
+            return this.rootRootUrl + "mk-ideas/icon_powers_military.webp";
+        }
+        throw new Error("Unknown mana type: " + mana);
+    }
+
+    public getIdeaIconProvider() {
+        const outerThis = this;
+        return new class implements IIconProvider {
+            getIcons(): Promise<KeyedIcon[]> {
+                const customIdeas = outerThis.getCustomIdeas();
+                const icons: KeyedIcon[] = [];
+                return outerThis.waitUntilReady().then(() => {
+                    const adm = Array.from(customIdeas.get("ADM")!.values());
+                    const dip = Array.from(customIdeas.get("DIP")!.values());
+                    const mil = Array.from(customIdeas.get("MIL")!.values());
+                    adm.concat(dip).concat(mil).forEach(idea => {
+                    icons.push({ key: idea.getKey(), imageUrl: outerThis.getIdeaIconImageUrl(idea.getKey()), name: outerThis.localizeIdea(idea.getKey()) });
+                    });
+                    return icons;
+                });
+            }
+        };
     }
 }

@@ -1,4 +1,8 @@
+import { Mana } from "./EU4Service";
+
 export interface IIdea {
+
+    getMana(): Mana;
 
     getKey(): string;
 
