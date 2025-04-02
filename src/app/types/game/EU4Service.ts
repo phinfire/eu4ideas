@@ -2,16 +2,10 @@ import { Injectable } from "@angular/core";
 import { Jomini } from "jomini";
 import JSZip from "jszip";
 import { Idea } from "./Idea";
-import { FourteenFortyFourProvider } from "./FourteenFortyFourProvider";
 import { Modifier } from "./Modifier";
 import { IIconProvider } from "../keyedIcons/IIconProvider";
 import { KeyedIcon } from "../keyedIcons/KeyedIcon";
-
-export enum Mana {
-    ADM = "ADM",
-    DIP = "DIP",
-    MIL = "MIL"
-}
+import { Mana } from "./Mana";
 
 export enum NumberKind {
     CONSTANT,
@@ -22,19 +16,18 @@ export enum NumberKind {
 @Injectable({providedIn: 'root'})
 export class EU4Service {
 
-    private static DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL = [0, 5, 15, 30]
+    private static DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL = [0, 5, 15, 30,
+        45, 60, 75, 90,
+        105, 120, 135, 150];
 
-    private rootRootUrl = "https://codingafterdark.de/";
     private readonly rootUrl = "https://codingafterdark.de/ide/";
 
-    private ideas: Map<string,Map<string,Idea>> = new Map();
+    private ideas = new Map<string,Idea>();
     private idea2ModifierIntepretation: Map<string,NumberKind> = new Map();
     private idea2Localisation: Map<string,string> = new Map();
     private category2IdeaKeys: Map<Mana,string[]> = new Map();
-    private ftffp: FourteenFortyFourProvider;
 
     constructor() {
-        this.ftffp = new FourteenFortyFourProvider();
         fetch("https://codingafterdark.de/ide/modifiers.json?" + new Date().getTime())
             .then(response => response.json())
             .then(data => {
@@ -70,17 +63,16 @@ export class EU4Service {
                             zip.loadAsync(data).then((contents) => {
                                 for (const key in contents.files) {
                                     contents.files[key].async("text").then((text) => {
-                                        this.extractIdeas(parser.parseText(text));
+                                        const ideas = EU4Service.extractIdeas(parser.parseText(text));
+                                        for (let idea of ideas) {
+                                            this.ideas.set(idea.getKey(), idea);
+                                        }
                                     });
                                 }
                             });
                         });
                     });
-                });
-    }
-
-    public get1444Provider() {
-        return this.ftffp;
+            });
     }
 
     public getTypeOfIdea(ideaKey: string) {
@@ -91,7 +83,8 @@ export class EU4Service {
         return this.idea2Localisation.get(ideaKey) || ideaKey;
     }
 
-    public extractIdeas(parsed: any) {
+    private static extractIdeas(parsed: any) {
+        const ideas = [];
         for (let key of Object.keys(parsed)) {
             const category = parsed[key].category;
             for (let natIdeaName of Object.keys(parsed[key]).filter(k => k != "category")) {
@@ -107,17 +100,14 @@ export class EU4Service {
                 }
                 const modifierIdeaKey = Object.keys(ideaData).find(k => !k.startsWith("level_cost") && k != "max_level")!;
                 const mana = category == "ADM" ? Mana.ADM : category == "DIP" ? Mana.DIP : Mana.MIL;
-                const idea = new Idea(new Modifier(mana, modifierIdeaKey, parseFloat(ideaData[modifierIdeaKey])), costPerLevel);
-                this.addIdea(category, modifierIdeaKey, idea);
+                let modifierValue =  parseFloat(ideaData[modifierIdeaKey]);
+                if (isNaN(modifierValue)) {
+                    modifierValue = 1;
+                }
+                ideas.push(new Idea(new Modifier(mana, modifierIdeaKey, modifierValue), costPerLevel));
             }
         }
-    }
-
-    private addIdea(category: string, key: string, idea: Idea) {
-        if (!this.ideas.has(category)) {
-            this.ideas.set(category, new Map());
-        }
-        this.ideas.get(category)!.set(key, idea);
+        return ideas;
     }
 
     public getIdeaIconImageUrl(ideaKey: string) {
@@ -128,16 +118,8 @@ export class EU4Service {
         return this.ideas;
     }
 
-    public getCustomIdeaWeights() {
-        return [2, 2, 1.8, 1.6, 1.4, 1,2, 1, 1, 1]
-    }
-
-    public getCategory2IdeaKeys() {
-        return this.category2IdeaKeys;
-    }
-
     public waitUntilReady() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (this.ideas.size > 0 && this.idea2ModifierIntepretation.size > 0 && this.idea2Localisation.size > 0) {
                 resolve(null);
             } else {
@@ -148,53 +130,11 @@ export class EU4Service {
         });
     }
 
-    public getIdeaKind(key: string) {
-        for (let [category, idea] of this.ideas.entries()) {
-            if (idea.has(key)) {
-                return category;
-            }
-        }
-        return null;
-    }
-
     public getIdea(key: string) {
-        for (let [category, idea] of this.ideas.entries()) {
-            if (idea.has(key)) {
-                return idea.get(key)!;
-            }
+        const idea = this.ideas.get(key);
+        if (idea) {
+            return idea;
         }
-        throw new Error("Idea not found: " + key);
-    }
-
-    public getManaSymbol(mana: Mana) {
-        if (mana == Mana.ADM) {
-            return this.rootRootUrl + "mk-ideas/icon_powers_administrative.webp";
-        }
-        if (mana == Mana.DIP) {
-            return this.rootRootUrl + "mk-ideas/icon_powers_diplomatic.webp";
-        }
-        if (mana == Mana.MIL) {
-            return this.rootRootUrl + "mk-ideas/icon_powers_military.webp";
-        }
-        throw new Error("Unknown mana type: " + mana);
-    }
-
-    public getIdeaIconProvider() {
-        const outerThis = this;
-        return new class implements IIconProvider {
-            getIcons(): Promise<KeyedIcon[]> {
-                const customIdeas = outerThis.getCustomIdeas();
-                const icons: KeyedIcon[] = [];
-                return outerThis.waitUntilReady().then(() => {
-                    const adm = Array.from(customIdeas.get("ADM")!.values());
-                    const dip = Array.from(customIdeas.get("DIP")!.values());
-                    const mil = Array.from(customIdeas.get("MIL")!.values());
-                    adm.concat(dip).concat(mil).forEach(idea => {
-                    icons.push({ key: idea.getKey(), imageUrl: outerThis.getIdeaIconImageUrl(idea.getKey()), name: outerThis.localizeIdea(idea.getKey()) });
-                    });
-                    return icons;
-                });
-            }
-        };
+        throw new Error("Idea not found: \"" + key + "\" (" + this.ideas.size + " ideas available)");
     }
 }

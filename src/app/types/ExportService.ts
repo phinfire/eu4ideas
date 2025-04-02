@@ -1,11 +1,39 @@
 import { Injectable } from "@angular/core";
 import { IIdea } from "./game/IIdea";
+import JSZip from "jszip";
 
 @Injectable({providedIn: 'root'})
 export class ExportService {
 
+    private static LOC_SEPARATOR = ":0";
+
     constructor() {
         
+    }
+
+    public downloadAsZip( tag: string, ideaString: string, locSnippet: string, ) {
+        const zip = new JSZip();
+        zip.file(`${tag}.yml`, locSnippet);
+        zip.file(`${tag}.txt`, ideaString);
+
+        zip.generateAsync({ type: "blob" }).then((content) => {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(content);
+            a.download = `${tag}.zip`;
+            a.click();
+        });
+    }
+
+    public getLocSnippet(tag: string, locTitles: string[], locDescriptions: string[]) {
+        const lines = [];
+        for (let i = 0; i < locTitles.length; i++) {
+            const titleLine = this.getNThIdeaKey(tag, i) + ExportService.LOC_SEPARATOR + " \""  + locTitles[i].replace("\n", " ") + "\"";
+            const descriptionLine = this.getNThIdeaKey(tag, i) + "_desc" + ExportService.LOC_SEPARATOR + " \""  + locDescriptions[i].replace("\n", " ") + "\"";
+            lines.push(titleLine);
+            lines.push(descriptionLine);
+        }
+
+        return lines.join("\n");
     }
 
     public getIdeaString(tag: string, ideas: IIdea[], levels: number[]) {
@@ -21,7 +49,7 @@ export class ExportService {
         resultLines.push(this.getWrappedInCurlyConstruct("trigger", ["tag = " + tag]).map(line => "\t" + line).join("\n"));
         resultLines.push("\tfree = yes");
         for (let i = 0; i < mainIdeas.length; i++) {
-            resultLines.push(this.ideasToBlockLines(tag + "_idea_" + i, [mainIdeas[i]], [levels[i + 2]]).map(line => "\t" + line).join("\n"));
+            resultLines.push(this.ideasToBlockLines(this.getNThIdeaKey(tag,i), [mainIdeas[i]], [levels[i + 2]]).map(line => "\t" + line).join("\n"));
         }
         resultLines.push(this.ideasToBlockLines("bonus", ambition, levels.slice(8, 10)).map(line => "\t" + line).join("\n"));
         resultLines.push("}");
@@ -42,5 +70,9 @@ export class ExportService {
             ...lines.map(line => "\t" + line),
             "}"
         ];
+    }
+
+    private getNThIdeaKey(tag: string, n: number) {
+        return tag + "_idea_" + n;
     }
 }

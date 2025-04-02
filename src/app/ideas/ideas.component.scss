@@ -83,3 +83,54 @@ app-nat-idea-view {
     background-color: var(--background-color-on-hover);
     color: var(--font-color-on-hover);
 }
+
+.export-button {
+    width: 100%;
+    font-size: 1.5em;
+}
+
+.header-red {
+    background-color: rgba(139, 0, 0, 0.5);
+}
+
+.header-green {
+    background-color: rgba(0, 128, 0, 0.5);
+}
+
+.header-red:hover {
+    background-color: rgba(139, 0, 0, 0.5);
+}
+
+.header-green:hover {
+    background-color: rgba(0, 128, 0, 0.5);
+}
+
+.input-pair {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5em;
+    border-top: 1px solid var(--font-color);
+    padding: 0.5em;
+}
+
+.input-pair-top {
+    display: flex;
+    flex-direction: row;
+}
+
+.input-pair-top > div:first-child {
+    font-size: 1.25em;
+    margin-right: 0.5em;
+    user-select: none;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.small-field {
+    width: 60%;
+}
+
+.large-field {
+    width: 100%;
+    height: 10em;
+}

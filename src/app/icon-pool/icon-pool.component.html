@@ -10,7 +10,7 @@
   <div class="icon-pool">
     <img *ngFor="let icon of getIcons()" 
          [src]="icon.imageUrl" 
-         [matTooltip]="icon.name" 
+         [matTooltip]="getTooltip(icon)" 
          alt=":(" 
          [title]="icon.key" 
          [ngClass]="{ 'selected': isSelected(icon.key), 'not-selected': !isSelected(icon.key) }"

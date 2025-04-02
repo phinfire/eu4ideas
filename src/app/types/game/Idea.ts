@@ -1,11 +1,12 @@
-import { Mana } from "./EU4Service";
 import { IIdea } from "./IIdea";
 import { Modifier } from "./Modifier";
 
 export class Idea implements IIdea {
 
     constructor(private modifier: Modifier, private costPerLevel: number[]) {
-
+        if (costPerLevel.length == 0 || costPerLevel.some(cost => isNaN(cost))) {
+            throw new Error("Invalid costPerLevel array for modifier " + modifier.getKey() + ": " + costPerLevel + "(" + costPerLevel.length + ")");
+        }
     }
 
     public getMana() {

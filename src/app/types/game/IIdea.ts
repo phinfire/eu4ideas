@@ -1,4 +1,4 @@
-import { Mana } from "./EU4Service";
+import { Mana } from "./Mana";
 
 export interface IIdea {
 

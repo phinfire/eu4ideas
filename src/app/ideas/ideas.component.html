@@ -6,7 +6,8 @@
       tabindex="0"
       [attr.id]="'accordion-header-' + index"
       [attr.aria-expanded]="expandedIndex === index"
-      [attr.aria-controls]="'accordion-body-' + index">
+      [attr.aria-controls]="'accordion-body-' + index"
+      [ngClass]="getHeaderClass(index)">
       {{ item }}
       <span class="accordion-item-description">
         Click to {{ expandedIndex === index ? 'close' : 'open' }}
@@ -18,12 +19,52 @@
       role="region"
       [attr.id]="'accordion-body-' + index"
       [attr.aria-labelledby]="'accordion-header-' + index">
-      <ng-container *ngIf="index !== 1">
+      <ng-container *ngIf="index == 0">
         <app-icon-pool [iconProvider]="nationProvider" [connector]="nationSelectConnector"></app-icon-pool>
       </ng-container>
       <ng-container *ngIf="index === 1">
         <div>
-          <app-icon-pool [iconProvider]="eu4.getIdeaIconProvider()" [connector]="ideasConnector"></app-icon-pool>
+          <app-icon-pool [iconProvider]="lobbyConfigProvider.getIdeaIconProvider()" [connector]="ideasConnector"></app-icon-pool>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="index === 2">
+        <div>
+          <ng-container *ngFor="let pair of ideaLocalisations; let i = index">
+            <div class="input-pair">
+              <div class="input-pair-top">
+                <div>{{ ( i+1) + ". Idea:"}}</div>
+                <img src="{{ getIdeaIcon(i) }}" alt="" width="auto" height="100%" draggable="false">
+                <mat-form-field appearance="fill" class="small-field">
+                  <mat-label>Name</mat-label>
+                  <input 
+                    matInput 
+                    [(ngModel)]="pair.key" 
+                    (ngModelChange)="onIdeaLocalisationChange(i, 'key', $event)" 
+                    placeholder="Enter Name">
+                </mat-form-field>
+              </div>
+              <mat-form-field appearance="fill" class="large-field">
+                <mat-label>Description</mat-label>
+                <textarea 
+                  matInput 
+                  [(ngModel)]="pair.value" 
+                  (ngModelChange)="onIdeaLocalisationChange(i, 'value', $event)" 
+                  placeholder="Enter Description"></textarea>
+              </mat-form-field>
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="index === 3">
+        <div>
+          <button 
+          class="export-button" 
+          mat-stroked-button 
+          matTooltip=" {{ getExportTooltip() }}"
+          [disabled]="isExportDisabled()" 
+          (click)="onExportClick()">
+          Export
+        </button>
         </div>
       </ng-container>
     </div>

@@ -2,14 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatSliderModule } from '@angular/material/slider';
-import { EU4Service, Mana, NumberKind } from '../types/game/EU4Service';
+import { EU4Service } from '../types/game/EU4Service';
 import { IIdea } from '../types/game/IIdea';
 import { IdeasConnector } from '../types/IdeasConnector';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ISliderConfig, SliderConfig } from './ISliderConfig';
 import { UserConfigurationProvider } from '../types/UserConfigurationProvider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ExportService } from '../types/ExportService';
+import { Mana } from '../types/game/Mana';
 
 @Component({
   selector: 'app-nat-idea-view',
@@ -30,8 +30,8 @@ export class NatIdeaViewComponent {
   nationTag: string = "";
   nationFlagImageUrl: string = "";
 
-  constructor(private eu4: EU4Service, private exportService: ExportService, private userConfig: UserConfigurationProvider) {
-
+  constructor(private eu4: EU4Service, private userConfig: UserConfigurationProvider) {
+    this.loadPreviouslySetIdeaValuesFromLocalStorage();
   }
 
   ngOnInit() {
@@ -74,6 +74,19 @@ export class NatIdeaViewComponent {
       this.sliders = newSliders;
   }
 
+  getIdeaAtIndex(index: number) {
+    return this.entries[index];
+  }
+
+  getIdeasInOrder() {
+    return this.entries.map((idea, index) => {
+      if (idea == null) {
+        return null;
+      }
+      return { idea, level: this.sliders[index]!.value };
+    }).filter(idea => idea != null);
+  }
+
   getSliders() {
     return this.sliders;
   }
@@ -85,9 +98,9 @@ export class NatIdeaViewComponent {
 
   getRealWorldCost(index: number, div: HTMLDivElement | null) {
     if (this.sliders[index] == null) {
-      return 0; //TODO: remove
+      return 0;
     }
-    return Math.ceil(this.eu4.getCustomIdeaWeights()[index] * this.sliders[index].getCurrentCost());
+    return Math.ceil(this.userConfig.getCustomIdeaWeights()[index] * this.sliders[index].getCurrentCost());
   }
 
   getTotalCost() {
@@ -107,7 +120,6 @@ export class NatIdeaViewComponent {
   }
 
   drop(event: CdkDragDrop<string[]>) {
-    //moveItemInArray(this.sliders, event.previousIndex, event.currentIndex);
     const a = this.sliders[event.previousIndex];
     this.sliders[event.previousIndex] = this.sliders[event.currentIndex];
     this.sliders[event.currentIndex] = a;
@@ -118,35 +130,41 @@ export class NatIdeaViewComponent {
   }
 
   getManaIcon(index: number) {
-    return this.eu4.getManaSymbol([Mana.ADM, Mana.DIP, Mana.MIL][index]);
+    return [Mana.ADM, Mana.DIP, Mana.MIL][index].getIconUrl();
+  }
+
+  getManaPercentages() {
+    if (this.ideasConnector.getSelectedIdeas().size < 1) {
+      return [0, 0, 0];
+    }
+    const costPerMana = [Mana.ADM, Mana.DIP, Mana.MIL].map(mana => {
+      return Array.from(this.getSliders()).map(slider => {
+        if (slider == null || slider.getIdea().getMana() != mana) {
+          return 0;
+        }
+        return slider.getIdea().getCostAtLevel(slider.value);
+      }).reduce((a, b) => a + b, 0);
+    });
+    const totalCost = costPerMana.reduce((a, b) => a + b, 0);
+    return costPerMana.map(cost => {
+      if (totalCost == 0) {
+        return 0;
+      }
+      return Math.floor(cost / totalCost * 100);
+    });
   }
 
   getManaPercentage(index: number) {
+    /*
     if (this.ideasConnector.getSelectedIdeas().size < 1) {
       return 0;
     }
     const mana = [Mana.ADM, Mana.DIP, Mana.MIL][index];
     const ideasOfThisType = Array.from(this.ideasConnector.getSelectedIdeas().values()).map(idea => idea.getMana()).filter(m => m == mana).length;
     return 100 * ideasOfThisType / this.ideasConnector.getSelectedIdeas().size;
+    */
+    return this.getManaPercentages()[index];
   }
-
-  isExportDisabled() {
-    return this.ideasConnector.getSelectedIdeas().size != 10 || this.getTotalCost() > this.getMaxLegalCost();
-  }
-
-  getExportTooltip() {
-    if (this.isExportDisabled()) {
-      return "You must select exactly 10 ideas and the total cost must not exceed " + this.getMaxLegalCost();
-    } else {
-      return "Click to download the ideas as a text file";
-    }
-  }
-
-  onExportClick() {
-    const result = this.exportService.getIdeaString(this.nationTag, Array.from(this.ideasConnector.getSelectedIdeas().values()), this.sliders.map(slider => slider!.value));
-    console.log(result);
-  }
-
 
   setNation(tag: string, name: string, flagImageUrl: string) {
     this.nationTag = tag;
@@ -159,5 +177,27 @@ export class NatIdeaViewComponent {
       return "...";
     }
     return this.nationName + "'s National Ideas";
+  }
+
+  reportValueChange() {
+    this.sliders.filter(slider => slider != null).forEach(slider => {
+      this.previouslySetIdeaValues.set(slider!.getKey(), slider!.value);
+    });
+    this.storePreviouslySetIdeaValuesInLocalStorage();
+  }
+
+  storePreviouslySetIdeaValuesInLocalStorage() {
+    localStorage.setItem("previouslySetIdeaValues", JSON.stringify(Array.from(this.previouslySetIdeaValues.entries())));
+  }
+
+  loadPreviouslySetIdeaValuesFromLocalStorage() {
+    const previouslySetIdeaValues = localStorage.getItem("previouslySetIdeaValues");
+    if (previouslySetIdeaValues) {
+      this.previouslySetIdeaValues = new Map(JSON.parse(previouslySetIdeaValues));
+    }
+  }
+
+  onIdeaIconClick(slider: ISliderConfig) {
+    this.ideasConnector.setSelection(slider.getIdea().getKey(), false);
   }
 }

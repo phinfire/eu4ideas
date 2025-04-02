@@ -1,9 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { IdeasConnector } from '../types/IdeasConnector';
-import { EU4Service } from '../types/game/EU4Service';
-import { Idea } from '../types/game/Idea';
 import { IIconProvider } from '../types/keyedIcons/IIconProvider';
 import { KeyedIcon } from '../types/keyedIcons/KeyedIcon';
 import { FormsModule } from '@angular/forms';
@@ -58,6 +55,10 @@ export class IconPoolComponent {
     return this.filterText.trim().length == 0
     || key.toLowerCase().includes(this.filterText.toLowerCase())
     || this.key_name.has(key) && this.key_name.get(key)!.toLowerCase().includes(this.filterText.toLowerCase());
+  }
+
+  getTooltip(icon: KeyedIcon) {
+    return icon.name;
   }
 
 }

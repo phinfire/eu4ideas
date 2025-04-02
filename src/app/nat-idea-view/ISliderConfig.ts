@@ -10,6 +10,8 @@ export interface ISliderConfig {
   getCurrentCost(): number;
   getCurrentModifier(): string;
   getName(): string;
+  getIdea(): IIdea;
+  getIdeaIconTooltip(): string;
 }
 
 export class SliderConfig implements ISliderConfig {
@@ -21,6 +23,10 @@ export class SliderConfig implements ISliderConfig {
 
   getName(): string {
     return this.eu4.localizeIdea(this.idea.getKey());
+  }
+
+  getIdea() {
+    return this.idea;
   }
 
   getKey(): string {
@@ -48,12 +54,17 @@ export class SliderConfig implements ISliderConfig {
       return percentage.toFixed(1) + "%";
     } else if (type == NumberKind.CONSTANT) {
       return modifierAsNumber.toString();
+    } else {
+      return modifierAsNumber.toString();
     }
-    throw new Error("Unknown number kind: " + type);
   }
 
   getCurrentModifier(): string {
     const modifierAsNumber = this.idea.getModifierAtLevel(this.value);
     return this.formatModifierNumber(modifierAsNumber);
+  }
+
+  getIdeaIconTooltip(): string {
+    return "Click to remove idea"
   }
 }
