@@ -23,12 +23,18 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(33, 33, 33, 0.7);
 }
 
 .button-row {
     flex-shrink: 0;
     margin-bottom: 1em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 0.5em;
 }
 
 .table-wrapper {
@@ -43,10 +49,6 @@ th {
     user-select: none;
     font-family: var(--font-family);
     font-size: var(--font-size);
-}
-
-th {
-    font-weight: bold;
 }
 
 [mat-header-cell] {
@@ -64,14 +66,13 @@ td {
 
 .top-button {
     margin: 1em;
-    background-color: var(--background-color);
-    color: var(--font-color);
-    font-weight: bold;
     font-size: 1em;
     border-radius: 0.5em;
-    padding: 0.5em 1em;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    padding: 0.5em 0.5em;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover {
         transform: translateY(-2px);

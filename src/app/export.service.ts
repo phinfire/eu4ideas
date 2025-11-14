@@ -31,7 +31,7 @@ export class ExportService {
     //private textColor = "#3a3d40";
     //private backgroundColor = "#f4ecd8";
 
-    constructor(private canvasService: CanvasService) {
+    constructor() {
 
     }
 

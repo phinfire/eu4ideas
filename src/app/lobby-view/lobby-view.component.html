@@ -1,7 +1,17 @@
 <div class="container">
     <div class="button-row">
-        <button mat-raised-button class="top-button" (click)="addRow()">Add Row</button>
-        <button mat-raised-button class="top-button" (click)="print()">Print</button>
+        <button mat-raised-button class="top-button" (click)="addRow()" matTooltip="Add Row">
+            <mat-icon>add</mat-icon>
+        </button>
+        <button mat-raised-button class="top-button" (click)="print()" matTooltip="Print">
+            <mat-icon>print</mat-icon>
+        </button>
+        <button mat-raised-button class="top-button" (click)="downloadState()" matTooltip="Download">
+            <mat-icon>download</mat-icon>
+        </button>
+        <button mat-raised-button class="top-button" (click)="importState()" matTooltip="Import">
+            <mat-icon>upload</mat-icon>
+        </button>
     </div>
     <div class="table-wrapper">
         <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">

@@ -7,7 +7,6 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { IIconProvider } from '../types/keyedIcons/IIconProvider';
 import { KeyedIcon } from '../types/keyedIcons/KeyedIcon';
-import { ISelectConnector } from '../types/glue/ISelectConnectors';
 import { SelectConnector } from '../types/glue/SelectConnectors';
 import { CanvasService } from '../canvas.service';
 import { HttpClient } from '@angular/common/http';
@@ -236,5 +235,44 @@ export class LobbyViewComponent {
                 }
             });
         });
+    }
+
+    downloadState(): void {
+        const stateJson = JSON.stringify(this.rowEntries, null, 2);
+        const blob = new Blob([stateJson], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `lobby-state-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    importState(): void {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (event: any) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e: any) => {
+                    try {
+                        const importedState = JSON.parse(e.target.result);
+                        if (Array.isArray(importedState)) {
+                            this.rowEntries = importedState;
+                            this.dataSource.data = [...this.rowEntries];
+                            this.storeCurrentStateinLocalStorage();
+                            console.log('State imported successfully');
+                        } else {
+                            console.error('Invalid state format: expected an array');
+                        }
+                    } catch (error) {
+                        console.error('Failed to import state:', error);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
     }
 }
