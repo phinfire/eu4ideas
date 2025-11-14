@@ -1,0 +1,125 @@
+:host {
+    color: var(--font-color);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    font-weight: var(--font-weight);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    --mat-sys-surface: none;
+    --mat-sys-on-surface: var(--font-color);
+    --mat-sys-title-small-size: 1em;
+}
+
+.container {
+    padding: 1em;
+    margin: 0 auto;
+    width: 90%;
+    height: 90%;
+    box-sizing: border-box;
+    border-radius: 1em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.button-row {
+    flex-shrink: 0;
+    margin-bottom: 1em;
+}
+
+.table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 0.5em;
+}
+
+td,
+th {
+    color: var(--font-color);
+    user-select: none;
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+}
+
+th {
+    font-weight: bold;
+}
+
+[mat-header-cell] {
+    background-color: rgb(0, 0, 0) !important;
+    z-index: 10;
+}
+
+td {
+    padding: 1em 0.75em !important;
+}
+
+.round {
+    clip-path: circle(50%);
+}
+
+.top-button {
+    margin: 1em;
+    background-color: var(--background-color);
+    color: var(--font-color);
+    font-weight: bold;
+    font-size: 1em;
+    border-radius: 0.5em;
+    padding: 0.5em 1em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+}
+
+td input[matInput] {
+    width: 2em;
+    height: 1.5em;
+    text-align: center;
+    border: 1px solid var(--font-color);
+    border-radius: 0.25em;
+    background-color: var(--background-color);
+    color: var(--font-color);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    padding: 0.1em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    appearance: none;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 5px var(--font-color);
+        transform: translateY(-1px);
+    }
+}
+
+td input[matInput][type="number"] {
+    -moz-appearance: textfield;
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}

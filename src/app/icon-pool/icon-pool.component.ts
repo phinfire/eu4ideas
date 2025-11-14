@@ -30,9 +30,19 @@ export class IconPoolComponent {
 
   }
 
+  setIconProvider(iconProvider: IIconProvider) {
+    this.iconProvider = iconProvider;
+  }
+
+  setConnector(connector: ISelectConnector) {
+    this.connector = connector;
+  }
+
+
   ngOnInit() {
     this.iconProvider.getIcons().then(icons => {
       this.icons = icons;
+      console.log("Loaded icons: ", icons);
       icons.forEach(icon => this.key_name.set(icon.key, icon.name));
     });
   }

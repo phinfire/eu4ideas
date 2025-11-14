@@ -160,7 +160,7 @@ export class UserConfigurationProvider {
         const configRootUrl = "https://codingafterdark.de/mc/ideas/flags/";
         class NationIconProvider implements IIconProvider {
             getIcons(): Promise<KeyedIcon[]> {
-                return fetch(configRootUrl + "nations.json")
+                return fetch(configRootUrl + "nations.json" + "?" + new Date().getTime())
                     .then(response => response.json())
                     .then((json: any[]) => {
                         return json.map(entry => new KeyedIcon(entry.key, configRootUrl + entry.key + ".webp", entry.name));

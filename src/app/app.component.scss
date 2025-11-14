@@ -3,9 +3,10 @@
     height: 100%;
 
     --mat-sys-on-surface: var(--font-color);
+    --mat-sys-primary: var(--font-color);
     --mat-sys-title-small-size: 2em;
     --mat-sys-title-small-font: var(--font-family);
-    --mat-sys-primary: var(--font-color);
+    
 }
 
 :host::before {
@@ -20,15 +21,4 @@
     background-repeat: no-repeat;
     filter: blur(5px) brightness(0.5) grayscale(0.5);
     z-index: -1;
-}
-
-.toggle-mode-button {
-    color: var(--font-color);
-    font-family: var(--font-family);
-    font-size: 0.2em;
-    font-weight: var(--font-weight);
-    background-color: var(--background-color);
-    border: 1px solid var(--font-color);
-    border-radius: 0.5em;
-    margin: 0.5em;
 }

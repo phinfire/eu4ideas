@@ -118,23 +118,37 @@ export class NatIdeasOverviewComponent {
     a.download = '!!!_player_nat_ideas.txt';
     a.click();
     window.URL.revokeObjectURL(url);
-    for (let language of ["english", "german"]) {
-      const loc = this.importExportService.toLoc(this.localisations).split("\n").map(line => {
-        if (line.startsWith(" ")) {
-            return line;
-        } else {
-          return " " + line;
+    this.sessionConfigProvider.getNationProvider().getIcons().then(icons => {
+      const nameLookup = new Map<string, string>();
+      for (let icon of icons) {
+        nameLookup.set(icon.key, icon.name);
+      }
+      return nameLookup;
+    }).then(nameLookup => {
+      for (let language of ["english", "german"]) {
+        const loc = this.importExportService.toLoc(this.localisations).split("\n").map(line => {
+          if (line.startsWith(" ")) {
+              return line;
+          } else {
+            return " " + line;
+          }
+        }).join("\n");
+        let fullSetTraditionsAmbitionsLoc = "";
+        for (let tag of this.uploadedIdeaSets.keys()) {
+          const ideas = this.uploadedIdeaSets.get(tag)!;
+          const locs = this.importExportService.getNonStandardIdeaLocalisations(tag, nameLookup, language == "german");
+          fullSetTraditionsAmbitionsLoc += "\n" + locs;
         }
-      }).join("\n");
-      const finalLoc = "l_" + language + ":\n" + loc;
-      const locWithBom = `\uFEFF${finalLoc}`;
-      const locBlob = new Blob([locWithBom], { type: 'text/plain' });
-      const locUrl = window.URL.createObjectURL(locBlob);
-      const locA = document.createElement('a');
-      locA.href = locUrl;
-      locA.download = '!!!_player_nat_ideas_loc_l_' + language + '.yml';
-      locA.click();
-      window.URL.revokeObjectURL(locUrl);
-    }
+        const finalLoc = "l_" + language + ":\n" + loc + "\n" + fullSetTraditionsAmbitionsLoc;
+        const locWithBom = `\uFEFF${finalLoc}`;
+        const locBlob = new Blob([locWithBom], { type: 'text/plain' });
+        const locUrl = window.URL.createObjectURL(locBlob);
+        const locA = document.createElement('a');
+        locA.href = locUrl;
+        locA.download = '!!!_player_nat_ideas_l_' + language + '.yml';
+        locA.click();
+        window.URL.revokeObjectURL(locUrl);
+      }
+    });
   }
 }

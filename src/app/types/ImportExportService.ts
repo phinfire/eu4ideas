@@ -10,6 +10,7 @@ import { UserConfigurationProvider } from "./UserConfigurationProvider";
 export class ImportExportService {
 
     private static LOC_SEPARATOR = ":0";
+    private static HIGH_PRIORITY_LOC_SEPARATOR = ":3";
 
     constructor(private ideaProvider: UserConfigurationProvider) {
 
@@ -38,7 +39,7 @@ export class ImportExportService {
         }
         return {tag: tag, ideas: ideasAndLevels};
     }
-
+    
     parseLocSnippet(locSnippet: string) {
         const key2value = new Map<string, string>();
         let pos = 0;
@@ -57,7 +58,7 @@ export class ImportExportService {
             }
             const key = locSnippet.substring(pos, indexOfSeparator).trim();
             const value = locSnippet.substring(indexOfStringStart + 1, indexOfStringEnd).trim();
-            key2value.set(key, value);
+            key2value.set(key, value); 
             pos = indexOfStringEnd + 1;
         }
         return key2value;
@@ -81,11 +82,31 @@ export class ImportExportService {
         const lines = [];
         for (let i = 0; i < locTitles.length; i++) {
             const titleLine = this.getNThIdeaKey(tag, i) + ImportExportService.LOC_SEPARATOR + " \""  + locTitles[i].replace("\n", " ") + "\"";
-            const descriptionLine = this.getNThIdeaKey(tag, i) + "_desc" + ImportExportService.LOC_SEPARATOR + " \""  + locDescriptions[i].replace("\n", " ") + "\"";
+            const desc = locDescriptions[i].replaceAll("\n", " ").replace(/['"`]/g, '');
+            if (desc.indexOf("\"") != -1) {
+                throw new Error("Invalid description: " + desc);
+            }
+            const descriptionLine = this.getNThIdeaKey(tag, i) + "_desc" + ImportExportService.LOC_SEPARATOR + " \""  + desc + "\"";
             lines.push(titleLine);
             lines.push(descriptionLine);
         }
         return lines.join("\n");
+    }
+
+    public getNonStandardIdeaLocalisations(tag: string, tag2CountryName: Map<string, string>, inGerman: boolean) {
+        if (inGerman) {
+            return [
+                this.getIdeaSetName(tag) + "_start" + ImportExportService.LOC_SEPARATOR + " \"" + tag2CountryName.get(tag) + " Ideen\"",
+                this.getIdeaSetName(tag) + "_start" + ImportExportService.LOC_SEPARATOR + " \"" + tag2CountryName.get(tag) + " Traditionen\"",
+                this.getIdeaSetName(tag) + "_bonus" + ImportExportService.LOC_SEPARATOR + " \"" + tag2CountryName.get(tag) + " Ambitionen\"",
+            ].map(line => " " + line).join("\n");
+        } else {
+            return [
+                this.getIdeaSetName(tag) + "_start" + ImportExportService.LOC_SEPARATOR + " \"" + tag2CountryName.get(tag) + " Ideas\"",
+                this.getIdeaSetName(tag) + "_start" + ImportExportService.LOC_SEPARATOR + " \"" + tag2CountryName.get(tag) + " Traditions\"",
+                this.getIdeaSetName(tag) + "_bonus" + ImportExportService.LOC_SEPARATOR + " \"" + tag2CountryName.get(tag) + " Ambitions\"",
+            ].map(line => " " + line).join("\n");
+        } 
     }
 
     public toLoc(locMap: Map<string,string>) {
@@ -101,7 +122,7 @@ export class ImportExportService {
             throw new Error("Invalid number of ideas: " + ideaAtLevels.length);
         }
 
-        let resultLines = [tag + "_nat_ideas = {\n"];
+        let resultLines = [this.getIdeaSetName(tag) + " = {\n"];
         resultLines.push(this.ideasToBlockLines("start", ideaAtLevels[0].concat(ideaAtLevels[1])).map(line => "\t" + line).join("\n"));
         resultLines.push(this.getWrappedInCurlyConstruct("trigger", ["tag = " + tag]).map(line => "\t" + line).join("\n"));
         resultLines.push("\tfree = yes");
@@ -136,6 +157,10 @@ export class ImportExportService {
 
     private getNThIdeaKey(tag: string, n: number) {
         return tag + "_idea_" + n;
+    }
+
+    private getIdeaSetName(tag: string) {
+        return tag + "_nat_ideas";
     }
 
     public initFileDragAndDropImport(dropArea: HTMLElement, callback: (result: Map<string,{ideas: IdeaAtLevel[], loc: Map<string,string>}>) => void) {

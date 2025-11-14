@@ -1,0 +1,50 @@
+name: Deploy EU4 Ideas
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:   # allow manual runs from Actions tab
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Angular app
+        run: npm run build -- --configuration production
+
+      - name: List build output
+        run: ls -R dist
+
+      - name: Clean remote files (keep subfolders)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            find /var/www/html/mc/ideas -maxdepth 1 -type f -delete
+
+      - name: Deploy new build
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: "dist/eu4ideas/browser/*"
+          target: "/var/www/html/mc/ideas"
+          strip_components: 3
