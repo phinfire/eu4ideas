@@ -44,6 +44,7 @@ export class ExportService {
         entries: T[],
         includePlayer: boolean
     ) {
+        await document.fonts.load(`10px ${this.fontFamily}`);
         await document.fonts.ready;
         const fontSize = 30;
         const perRowHeight = 80;
@@ -57,7 +58,6 @@ export class ExportService {
         const imageSize = perRowHeight * flagScale;
         const avatarSize = perRowHeight * avatarScale;
 
-        // One sort is enough
         const pointSortedEntries = entries
             .slice()
             .sort((a, b) => {
@@ -69,7 +69,6 @@ export class ExportService {
         const bigFontSize = (5 * fontSize / 3);
         const headerPixelHeight = perRowHeight * 1.5;
 
-        // Precompute offsets
         const offsets = [
             perRowHeight / 2,
             1.5 * perRowHeight,
@@ -100,14 +99,21 @@ export class ExportService {
 
         const cache = new Map<string, HTMLImageElement>();
 
-        const preload = (url: string) => new Promise<void>((resolve, reject) => {
+        const preload = (url: string) => new Promise<void>((resolve) => {
             const img = new Image();
             img.crossOrigin = "anonymous";
             img.onload = () => {
                 cache.set(url, img);
                 resolve();
             };
-            img.onerror = reject;
+            img.onerror = () => {
+                // Create a fallback placeholder image
+                const fallbackImg = new Image();
+                fallbackImg.width = 64;
+                fallbackImg.height = 64;
+                cache.set(url, fallbackImg);
+                resolve();
+            };
             img.src = url;
         });
 

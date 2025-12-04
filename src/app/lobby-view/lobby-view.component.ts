@@ -2,8 +2,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { IconPoolComponent } from '../icon-pool/icon-pool.component';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { MatSortModule } from '@angular/material/sort';
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { IIconProvider } from '../types/keyedIcons/IIconProvider';
 import { KeyedIcon } from '../types/keyedIcons/KeyedIcon';
@@ -55,7 +55,9 @@ interface RowEntry {
     templateUrl: './lobby-view.component.html',
     styleUrl: './lobby-view.component.scss'
 })
-export class LobbyViewComponent {
+export class LobbyViewComponent implements AfterViewInit {
+
+    @ViewChild(MatSort) sort!: MatSort;
 
     rowEntries: RowEntry[] = [];
 
@@ -82,6 +84,10 @@ export class LobbyViewComponent {
 
     ngOnInit() {
         this.loadStateFromLocalStorage();
+    }
+
+    ngAfterViewInit() {
+        this.dataSource.sort = this.sort;
     }
 
 

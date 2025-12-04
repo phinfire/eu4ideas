@@ -1,16 +1,9 @@
 :host {
-    color: var(--font-color);
-    font-family: var(--font-family);
-    font-size: var(--font-size);
-    font-weight: var(--font-weight);
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    --mat-sys-surface: none;
-    --mat-sys-on-surface: var(--font-color);
-    --mat-sys-title-small-size: 1em;
 }
 
 .container {
@@ -20,20 +13,15 @@
     height: 90%;
     box-sizing: border-box;
     border-radius: 1em;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    background-color: rgba(33, 33, 33, 0.7);
 }
 
 .button-row {
-    flex-shrink: 0;
     margin-bottom: 1em;
     display: flex;
-    flex-direction: row;
     align-items: center;
     justify-content: center;
-    width: 100%;
     gap: 0.5em;
 }
 
@@ -45,14 +33,10 @@
 
 td,
 th {
-    color: var(--font-color);
     user-select: none;
-    font-family: var(--font-family);
-    font-size: var(--font-size);
 }
 
 [mat-header-cell] {
-    background-color: rgb(0, 0, 0) !important;
     z-index: 10;
 }
 
@@ -66,38 +50,20 @@ td {
 
 .top-button {
     margin: 1em;
-    font-size: 1em;
-    border-radius: 0.5em;
+    border-radius: 50%;
     padding: 0.5em 0.5em;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    }
-
-    &:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    }
 }
 
 td input[matInput] {
     width: 2em;
     height: 1.5em;
     text-align: center;
-    border: 1px solid var(--font-color);
     border-radius: 0.25em;
-    background-color: var(--background-color);
-    color: var(--font-color);
-    font-family: var(--font-family);
-    font-size: var(--font-size);
     padding: 0.1em;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    font-size: 1.5em;
 
     -webkit-appearance: none;
     -moz-appearance: textfield;
@@ -108,16 +74,11 @@ td input[matInput] {
         -webkit-appearance: none;
         margin: 0;
     }
-
-    &:focus {
-        outline: none;
-        box-shadow: 0 0 5px var(--font-color);
-        transform: translateY(-1px);
-    }
 }
 
 td input[matInput][type="number"] {
-    -moz-appearance: textfield;
+    appearance: textfield;
+
     &::-webkit-inner-spin-button,
     &::-webkit-outer-spin-button {
         -webkit-appearance: none;
