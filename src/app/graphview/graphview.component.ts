@@ -1,10 +1,9 @@
-import * as d3 from 'd3';
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { IdeaAtLevel } from '../types/IdeaAtLevel';
+import * as d3 from 'd3';
 import { EU4Service } from '../types/game/EU4Service';
 import { IIdea } from '../types/game/IIdea';
 import { Mana } from '../types/game/Mana';
-import { UserConfigurationProvider } from '../types/UserConfigurationProvider';
+import { IdeaAtLevel } from '../types/IdeaAtLevel';
   
 const scrollyCantGoLowerThan = 1;
 

@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { IdeasComponent } from './ideas/ideas.component';
-import { CommonModule } from '@angular/common';
+
 import { NatIdeasOverviewComponent } from './nat-ideas-overview/nat-ideas-overview.component';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { GraphviewComponent } from './graphview/graphview.component';
@@ -12,7 +12,7 @@ import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, MatTabsModule, MatSnackBarModule, RouterOutlet],
+  imports: [MatTabsModule, MatSnackBarModule, RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

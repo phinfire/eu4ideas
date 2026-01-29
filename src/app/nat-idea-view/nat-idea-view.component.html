@@ -1,90 +1,108 @@
-  <div class="nat-idea-table-container">
+<div class="nat-idea-table-container">
 
-    <div class="idea-set-header">
-      <img src={{nationFlagImageUrl}} alt="Flag" draggable="false">
-      {{ getTitleText() }}
-    </div>
-    <table>
-      <tbody cdkDropList (cdkDropListDropped)="drop($event)">
-        <ng-container *ngFor="let slider of getSliders(); let i = index">
-          <ng-container *ngIf="slider !== null">
-            <tr cdkDrag class="parent-slider">
-              <ng-container *ngTemplateOutlet="parentSliderTemplate; context: { slider: slider, index: i }"></ng-container>
-              <ng-template cdkDragPreview>
-                <tr class="drag-preview">
-                  <td>{{ slider.getName() }}</td>
-                  <td>
-                    <img [src]="slider.getImageUrl()" alt="Slider Image" width="auto" height="100%" draggable="false">
-                  </td>
-                </tr>
-              </ng-template>
-            </tr>
-            <tr *ngFor="let childSlider of getChildren(slider)" class="child-slider">
+  <div class="idea-set-header">
+    <img src={{nationFlagImageUrl}} alt="Flag" draggable="false">
+    {{ getTitleText() }}
+  </div>
+  <table>
+    <tbody cdkDropList (cdkDropListDropped)="drop($event)">
+      @for (slider of getSliders(); track slider; let i = $index) {
+        @if (slider !== null) {
+          <tr cdkDrag class="parent-slider">
+            <ng-container *ngTemplateOutlet="parentSliderTemplate; context: { slider: slider, index: i }"></ng-container>
+            <ng-template cdkDragPreview>
+              <tr class="drag-preview">
+                <td>{{ slider.getName() }}</td>
+                <td>
+                  <img [src]="slider.getImageUrl()" alt="Slider Image" width="auto" height="100%" draggable="false">
+                </td>
+              </tr>
+            </ng-template>
+          </tr>
+          @for (childSlider of getChildren(slider); track childSlider) {
+            <tr class="child-slider">
               <ng-container *ngTemplateOutlet="childSliderTemplate; context: { childSlider: childSlider }"></ng-container>
             </tr>
-          </ng-container>
-          <ng-container *ngIf="slider === null">
-            <tr cdkDrag [cdkDragDisabled]="true" class="placeholder-row">
-              <ng-container *ngTemplateOutlet="nullSliderTemplate; context: { index: i }"></ng-container>
-            </tr>
-          </ng-container>
-        </ng-container>
-      </tbody>
-    </table>
-  </div>
-  <div class="bar-under-table">
-    <button mat-icon-button (click)="clearAllIdeas()">
-      <mat-icon>delete</mat-icon>
-    </button>
-    <div>
-      <div>
-        <img [src]="getManaIcon(0)" alt="Slider Image" width="auto" height="100%" draggable="false">
-      </div>
-      <div>{{ getManaPercentage(0).toFixed(1) }}%</div>
-      <div>
-        <img [src]="getManaIcon(1)" alt="Slider Image" width="auto" height="100%" draggable="false">
-      </div>
-      <div>{{ getManaPercentage(1).toFixed(1) }}%</div>
-      <div>
-        <img [src]="getManaIcon(2)" alt="Slider Image" width="auto" height="100%" draggable="false">
-      </div>
-      <div>{{ getManaPercentage(2).toFixed(1) }}%</div>
-    </div>
-    <div class="cost-panel">
-      <div>{{ getTotalCost() }}</div>
-      <div>/</div>
-      <div>{{ getMaxLegalCost() }}</div>
-    </div>
-  </div>  
+          }
+        }
+        @if (slider === null) {
+          <tr cdkDrag [cdkDragDisabled]="true" class="placeholder-row">
+            <ng-container *ngTemplateOutlet="nullSliderTemplate; context: { index: i }"></ng-container>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>
+<div class="bar-under-table">
+  <button mat-icon-button (click)="clearAllIdeas()">
+    <mat-icon>delete</mat-icon>
+  </button>
   <div>
+    <div>
+      <img [src]="getManaIcon(0)" alt="Slider Image" width="auto" height="100%" draggable="false">
+    </div>
+    <div>{{ getManaPercentage(0).toFixed(1) }}%</div>
+    <div>
+      <img [src]="getManaIcon(1)" alt="Slider Image" width="auto" height="100%" draggable="false">
+    </div>
+    <div>{{ getManaPercentage(1).toFixed(1) }}%</div>
+    <div>
+      <img [src]="getManaIcon(2)" alt="Slider Image" width="auto" height="100%" draggable="false">
+    </div>
+    <div>{{ getManaPercentage(2).toFixed(1) }}%</div>
   </div>
+  <div class="cost-panel">
+    <div>{{ getTotalCost() }}</div>
+    <div>/</div>
+    <div>{{ getMaxLegalCost() }}</div>
+  </div>
+</div>
+<div>
+</div>
 
 <ng-template #nullSliderTemplate let-i="index">
-    <td *ngIf="i === 0" class="idea-kind-cell">Traditions</td>
-    <td *ngIf="i === 2" class="idea-kind-cell">Ideas</td>
-    <td *ngIf="i === 9" class="idea-kind-cell">Ambition</td>
-    <td *ngIf="i !== 0 && i !== 2 && i !== 9" class="idea-kind-cell-index">{{  i == 1 ? "" : i - 1 }}</td>
-    <td>👈Select Modifier</td>
-    <td>
-      <img alt="" width="auto" height="100%" draggable="false">
-    </td>
-    <td>
-      <div></div>
-    </td>
-    <td>
-      <mat-slider [max]="1" [min]="1" [step]="1" disabled>
-        <input matSliderThumb [value]="1">
-      </mat-slider>
-    </td>
-    <td class="faded">0</td>
-    <td>0</td>
+  @if (i === 0) {
+    <td class="idea-kind-cell">Traditions</td>
+  }
+  @if (i === 2) {
+    <td class="idea-kind-cell">Ideas</td>
+  }
+  @if (i === 9) {
+    <td class="idea-kind-cell">Ambition</td>
+  }
+  @if (i !== 0 && i !== 2 && i !== 9) {
+    <td class="idea-kind-cell-index">{{  i == 1 ? "" : i - 1 }}</td>
+  }
+  <td>👈Select Modifier</td>
+  <td>
+    <img alt="" width="auto" height="100%" draggable="false">
+  </td>
+  <td>
+    <div></div>
+  </td>
+  <td>
+    <mat-slider [max]="1" [min]="1" [step]="1" disabled>
+      <input matSliderThumb [value]="1">
+    </mat-slider>
+  </td>
+  <td class="faded">0</td>
+  <td>0</td>
 </ng-template>
 
 <ng-template #parentSliderTemplate let-slider="slider" let-i="index">
-  <td *ngIf="i === 0" class="idea-kind-cell">Traditions</td>
-  <td *ngIf="i === 2" class="idea-kind-cell">Ideas</td>
-  <td *ngIf="i === 9" class="idea-kind-cell">Ambition</td>
-  <td *ngIf="i !== 0 && i !== 2 && i !== 9" class="idea-kind-cell-index">{{  i == 1 ? "" : i - 1 }}</td>
+  @if (i === 0) {
+    <td class="idea-kind-cell">Traditions</td>
+  }
+  @if (i === 2) {
+    <td class="idea-kind-cell">Ideas</td>
+  }
+  @if (i === 9) {
+    <td class="idea-kind-cell">Ambition</td>
+  }
+  @if (i !== 0 && i !== 2 && i !== 9) {
+    <td class="idea-kind-cell-index">{{  i == 1 ? "" : i - 1 }}</td>
+  }
   <td cdkDragHandle>{{ slider.getName() }}</td>
   <td cdkDragHandle>
     <img [src]="slider.getImageUrl()" alt="Slider Image" width="auto" height="100%" draggable="false" (click)="onIdeaIconClick(slider)" [matTooltip]="slider.getIdeaIconTooltip()">
@@ -93,11 +111,12 @@
     <div>{{ slider.getCurrentModifier() }}</div>
   </td>
   <td>
-    <mat-slider
-        *ngIf="1 !== slider.max"
+    @if (1 !== slider.max) {
+      <mat-slider
         [max]="slider.max" [min]="1" [step]="1" [showTickMarks]="slider.showTicks">
-      <input matSliderThumb [(ngModel)]="slider.value" (ngModelChange)="reportValueChange()">
-    </mat-slider>
+        <input matSliderThumb [(ngModel)]="slider.value" (ngModelChange)="reportValueChange()">
+      </mat-slider>
+    }
   </td>
   <td class="faded">{{ slider.getCurrentCost() }}</td>
   <td #realworldcostcell>{{ getRealWorldCost(i, realworldcostcell) }}</td>

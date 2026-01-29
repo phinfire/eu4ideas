@@ -84,11 +84,6 @@ export class ExportService {
             total += v;
             accumulatedOffsets.push(total);
         }
-
-        // -------------------------------------------------------
-        // 🔥 PRELOAD ALL IMAGES IN PARALLEL (flags + avatars)
-        // -------------------------------------------------------
-
         const imageUrls = new Set<string>();
         for (const entry of pointSortedEntries) {
             imageUrls.add(entry.getNationImageUrl());

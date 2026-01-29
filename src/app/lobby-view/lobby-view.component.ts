@@ -1,7 +1,7 @@
 import { MatDialog } from '@angular/material/dialog';
 import { IconPoolComponent } from '../icon-pool/icon-pool.component';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { CommonModule } from '@angular/common';
+
 import { Component, ViewChild, AfterViewInit } from '@angular/core';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -51,7 +51,7 @@ interface RowEntry {
 
 @Component({
     selector: 'app-lobby-view',
-    imports: [CommonModule, MatTableModule, MatSortModule, MatTooltipModule, MatIconModule, FormsModule],
+    imports: [MatTableModule, MatSortModule, MatTooltipModule, MatIconModule, FormsModule],
     templateUrl: './lobby-view.component.html',
     styleUrl: './lobby-view.component.scss'
 })

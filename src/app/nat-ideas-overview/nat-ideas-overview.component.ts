@@ -3,7 +3,7 @@ import { IIdea } from '../types/game/IIdea';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { CommonModule } from '@angular/common';
+
 import { ImportExportService } from '../types/ImportExportService';
 import { UserConfigurationProvider } from '../types/UserConfigurationProvider';
 import { KeyedIcon } from '../types/keyedIcons/KeyedIcon';
@@ -18,7 +18,7 @@ interface RowEntry {
 
 @Component({
   selector: 'app-nat-ideas-overview',
-  imports: [CommonModule, MatTableModule, MatSortModule, MatTooltipModule],
+  imports: [MatTableModule, MatSortModule, MatTooltipModule],
   templateUrl: './nat-ideas-overview.component.html',
   styleUrl: './nat-ideas-overview.component.scss'
 })
