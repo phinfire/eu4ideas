@@ -25,9 +25,10 @@ export class EU4Service {
     private idea2Localisation: Map<string, string> = new Map();
     private category2IdeaKeys: Map<Mana, string[]> = new Map();
     private whitelistedModifiers: Set<string> = new Set();
+    private balancedIdeas: Map<string, {costs: number[], value: number, localization: string}> = new Map();
 
     constructor() {
-        // Fetch both whitelist and ideas in parallel, wait for both to complete
+        // Fetch whitelist, balanced ideas, and custom ideas in parallel, wait for all to complete
         Promise.all([
             fetch("https://codingafterdark.de/mc/ideas/data/whitelist_table.txt?" + new Date().getTime())
                 .then(response => response.text())
@@ -35,14 +36,24 @@ export class EU4Service {
                     console.warn("Failed to load whitelist, proceeding without filtering", err);
                     return "";
                 }),
+            fetch("https://codingafterdark.de/mc/ideas/data/balancedIdeas.txt?" + new Date().getTime())
+                .then(response => response.text())
+                .catch(err => {
+                    console.warn("Failed to load balanced ideas, proceeding without", err);
+                    return "";
+                }),
             fetch("https://codingafterdark.de/mc/ideas/data/custom_idea_folder.json?" + new Date().getTime())
                 .then(response => response.json())
-        ]).then(([whitelist, customIdeas]) => {
+        ]).then(([whitelist, balancedIdeasText, customIdeas]) => {
             // Parse whitelist first
             if (whitelist) {
                 this.parseWhitelist(whitelist);
             }
-            // Then process ideas with whitelist available
+            // Parse balanced ideas
+            if (balancedIdeasText) {
+                this.parseBalancedIdeas(balancedIdeasText);
+            }
+            // Then process ideas with both whitelists available
             const ideas = this.extractIdeasFromFolderJson(customIdeas);
             for (let idea of ideas) {
                 console.log("Adding idea: ", idea.getKey());
@@ -50,7 +61,7 @@ export class EU4Service {
             }
             console.log("IDEAS: ", this.ideas);
         }).catch(err => {
-            console.error("Error loading ideas or whitelist", err);
+            console.error("Error loading ideas, whitelist, or balanced ideas", err);
         });
             
         /*
@@ -147,6 +158,31 @@ export class EU4Service {
         console.log("Whitelist loaded with", this.whitelistedModifiers.size, "modifiers");
     }
 
+    private parseBalancedIdeas(text: string): void {
+        const lines = text.split('\n');
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            const parts = line.split(';').map(p => p.trim()).filter(p => p !== '');
+            if (parts.length < 3) continue;
+
+            const modifierKey = parts[0];
+            const localization = parts[1];
+            const modifierValue = parseFloat(parts[parts.length - 1]);
+            const costsRaw = parts.slice(2, -1);
+            const costs = costsRaw.map(p => {
+                const val = parseFloat(p);
+                return isNaN(val) ? 0 : val;
+            });
+
+            this.balancedIdeas.set(modifierKey, {
+                costs: costs,
+                value: isNaN(modifierValue) ? 1 : modifierValue,
+                localization: localization
+            });
+        }
+        console.log("Balanced ideas loaded with", this.balancedIdeas.size, "modifiers");
+    }
+
     private isWhitelisted(modifierKey: string): boolean {
         // If whitelist has been loaded, only allow whitelisted modifiers
         if (this.whitelistedModifiers.size > 0) {
@@ -168,15 +204,8 @@ export class EU4Service {
         
         for (const ideaKey of Object.keys(json).filter(k => k !== "category")) {
             const ideaData = json[ideaKey];
-            const maxLevel = ideaData.max_level ? parseInt(ideaData.max_level) : 4;
-            const costPerLevel: number[] = [];
-            for (let i = 1; i <= maxLevel; i++) {
-                if (ideaData["level_cost_" + i]) {
-                    costPerLevel.push(parseInt(ideaData["level_cost_" + i]));
-                } else {
-                    costPerLevel.push(EU4Service.DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL[i - 1]);
-                }
-            }
+            
+            // Find the modifier key (the actual EU4 modifier name)
             const modifierIdeaKey = Object.keys(ideaData).find(k =>
                 !k.startsWith("level_cost") &&
                 k !== "max_level" &&
@@ -194,13 +223,19 @@ export class EU4Service {
                 continue;
             }
 
-            let modifierValue = parseFloat(ideaData[modifierIdeaKey]);
-            if (isNaN(modifierValue)) {
-                modifierValue = 1;
+            // Look up modifier data from balanced ideas
+            const balancedIdea = this.balancedIdeas.get(modifierIdeaKey);
+            if (!balancedIdea) {
+                console.warn(`Modifier "${modifierIdeaKey}" not found in balanced ideas, skipping`);
+                continue;
             }
+
+            const costPerLevel = balancedIdea.costs;
+            const modifierValue = balancedIdea.value;
+            const localization = balancedIdea.localization;
             
             // Collect metadata for caller to apply
-            localisations.set(modifierIdeaKey, modifierIdeaKey);
+            localisations.set(modifierIdeaKey, localization);
             interpretations.set(modifierIdeaKey, NumberKind.ADDITIVE);
             
             if (!categoryKeys.has(mana)) {
