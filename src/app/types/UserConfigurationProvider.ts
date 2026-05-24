@@ -21,7 +21,8 @@ export class UserConfigurationProvider {
             fetch("https://codingafterdark.de/mc/ideas/data/free.txt" + "?" + new Date().getTime())
             .then(response => response.text())
             .then(data => {
-                this.have1GetTheOtherFree = this.extractGet1Get1Free(data);
+                //this.have1GetTheOtherFree = this.extractGet1Get1Free(data);
+                this.have1GetTheOtherFree = new Map<string, IdeaAtLevel[]>();
                 fetch("https://codingafterdark.de/mc/ideas/data/balancedIdeas.txt")
                     .then(response => response.text())
                     .then(balancedData => {

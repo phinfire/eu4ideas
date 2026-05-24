@@ -27,22 +27,31 @@ export class EU4Service {
     private whitelistedModifiers: Set<string> = new Set();
 
     constructor() {
-        // Load the whitelist
-        fetch("https://codingafterdark.de/mc/ideas/data/whitelist_table.txt?" + new Date().getTime())
-            .then(response => response.text())
-            .then(text => this.parseWhitelist(text))
-            .catch(() => console.warn("Failed to load whitelist, proceeding without filtering"));
-        
-        fetch("https://codingafterdark.de/mc/ideas/data/custom_idea_folder.json?" + new Date().getTime())
-            .then(response => response.json())
-            .then(json => {
-                const ideas = this.extractIdeasFromFolderJson(json);
-                for (let idea of ideas) {
-                    console.log("Adding idea: ", idea.getKey());
-                    this.ideas.set(idea.getKey(), idea);
-                }
-                console.log("IDEAS: ", this.ideas);
-            });
+        // Fetch both whitelist and ideas in parallel, wait for both to complete
+        Promise.all([
+            fetch("https://codingafterdark.de/mc/ideas/data/whitelist_table.txt?" + new Date().getTime())
+                .then(response => response.text())
+                .catch(err => {
+                    console.warn("Failed to load whitelist, proceeding without filtering", err);
+                    return "";
+                }),
+            fetch("https://codingafterdark.de/mc/ideas/data/custom_idea_folder.json?" + new Date().getTime())
+                .then(response => response.json())
+        ]).then(([whitelist, customIdeas]) => {
+            // Parse whitelist first
+            if (whitelist) {
+                this.parseWhitelist(whitelist);
+            }
+            // Then process ideas with whitelist available
+            const ideas = this.extractIdeasFromFolderJson(customIdeas);
+            for (let idea of ideas) {
+                console.log("Adding idea: ", idea.getKey());
+                this.ideas.set(idea.getKey(), idea);
+            }
+            console.log("IDEAS: ", this.ideas);
+        }).catch(err => {
+            console.error("Error loading ideas or whitelist", err);
+        });
             
         /*
         fetch("https://codingafterdark.de/ide/modifiers.json?" + new Date().getTime())
@@ -139,11 +148,13 @@ export class EU4Service {
     }
 
     private isWhitelisted(modifierKey: string): boolean {
-        // If whitelist is empty (still loading), allow all for now
-        if (this.whitelistedModifiers.size === 0) {
-            return true;
+        // If whitelist has been loaded, only allow whitelisted modifiers
+        if (this.whitelistedModifiers.size > 0) {
+            return this.whitelistedModifiers.has(modifierKey);
         }
-        return this.whitelistedModifiers.has(modifierKey);
+        // Should not reach here if constructor properly waits for whitelist
+        // But as fallback, allow if whitelist couldn't load
+        return true;
     }
 
     private extractIdeaFromIdeaJson(json: any) {
@@ -189,7 +200,7 @@ export class EU4Service {
             }
             
             // Collect metadata for caller to apply
-            localisations.set(modifierIdeaKey, ideaKey);
+            localisations.set(modifierIdeaKey, modifierIdeaKey);
             interpretations.set(modifierIdeaKey, NumberKind.ADDITIVE);
             
             if (!categoryKeys.has(mana)) {
