@@ -6,7 +6,7 @@
   </div>
   <table>
     <tbody cdkDropList (cdkDropListDropped)="drop($event)">
-      @for (slider of getSliders(); track slider; let i = $index) {
+      @for (slider of getSliders(); track $index; let i = $index) {
         @if (slider !== null) {
           <tr cdkDrag class="parent-slider">
             <ng-container *ngTemplateOutlet="parentSliderTemplate; context: { slider: slider, index: i }"></ng-container>
@@ -19,7 +19,7 @@
               </tr>
             </ng-template>
           </tr>
-          @for (childSlider of getChildren(slider); track childSlider) {
+          @for (childSlider of getChildren(slider); track childSlider.getKey()) {
             <tr class="child-slider">
               <ng-container *ngTemplateOutlet="childSliderTemplate; context: { childSlider: childSlider }"></ng-container>
             </tr>

@@ -10,7 +10,7 @@
   </mat-form-field>
 </div>
 <div class="icon-pool">
-  @for (icon of getIcons(); track icon) {
+  @for (icon of getIcons(); track icon.key) {
     <img
       [src]="icon.imageUrl"
       [matTooltip]="getTooltip(icon)"

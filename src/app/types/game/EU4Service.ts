@@ -11,7 +11,7 @@ export enum NumberKind {
     ADDITIVE
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class EU4Service {
 
     private static DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL = [0, 5, 15, 30,
@@ -20,12 +20,24 @@ export class EU4Service {
 
     private readonly rootUrl = "https://codingafterdark.de/ide/";
 
-    private ideas = new Map<string,Idea>();
-    private idea2ModifierIntepretation: Map<string,NumberKind> = new Map();
-    private idea2Localisation: Map<string,string> = new Map();
-    private category2IdeaKeys: Map<Mana,string[]> = new Map();
+    private ideas = new Map<string, Idea>();
+    private idea2ModifierIntepretation: Map<string, NumberKind> = new Map();
+    private idea2Localisation: Map<string, string> = new Map();
+    private category2IdeaKeys: Map<Mana, string[]> = new Map();
 
     constructor() {
+        
+        fetch("https://codingafterdark.de/mc/ideas/data/custom_idea_folder.json?" + new Date().getTime())
+            .then(response => response.json())
+            .then(json => {
+                const ideas = this.extractIdeasFromFolderJson(json);
+                for (let idea of ideas) {
+                    this.ideas.set(idea.getKey(), idea);
+                }
+                console.log("IDEAS: ", this.ideas);
+            });
+            
+        /*
         fetch("https://codingafterdark.de/ide/modifiers.json?" + new Date().getTime())
             .then(response => response.json())
             .then(data => {
@@ -71,6 +83,68 @@ export class EU4Service {
                         });
                     });
             });
+            */
+    }
+
+    private extractIdeasFromFolderJson(json: any) {
+        const allIdeas: Idea[] = [];
+        for (const folderKey of Object.keys(json)) {
+            const folder = json[folderKey];
+
+            for (const categoryKey of Object.keys(folder)) {
+                const categoryData = folder[categoryKey];
+                const ideas = this.extractIdeaFromIdeaJson(categoryData);
+                allIdeas.push(...ideas);
+            }
+        }
+
+        return allIdeas;
+    }
+
+    private extractIdeaFromIdeaJson(json: any) {
+        const ideas: Idea[] = [];
+        const category = json.category;
+        const mana = category == "ADM" ? Mana.ADM : category == "DIP" ? Mana.DIP : Mana.MIL;
+        for (const ideaKey of Object.keys(json).filter(k => k !== "category")) {
+            const ideaData = json[ideaKey];
+            const maxLevel = ideaData.max_level ? parseInt(ideaData.max_level) : 4;
+            const costPerLevel: number[] = [];
+            for (let i = 1; i <= maxLevel; i++) {
+                if (ideaData["level_cost_" + i]) {
+                    costPerLevel.push(parseInt(ideaData["level_cost_" + i]));
+                } else {
+                    costPerLevel.push(EU4Service.DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL[i - 1]);
+                }
+            }
+            const modifierIdeaKey = Object.keys(ideaData).find(k =>
+                !k.startsWith("level_cost") &&
+                k !== "max_level" &&
+                k !== "chance" &&
+                k !== "enabled"
+            );
+
+            if (!modifierIdeaKey) {
+                continue;
+            }
+
+            let modifierValue = parseFloat(ideaData[modifierIdeaKey]);
+            if (isNaN(modifierValue)) {
+                modifierValue = 1;
+            }
+            
+            // Populate metadata maps for waitUntilReady()
+            this.idea2Localisation.set(modifierIdeaKey, ideaKey);
+            this.idea2ModifierIntepretation.set(modifierIdeaKey, NumberKind.ADDITIVE);
+            
+            if (!this.category2IdeaKeys.has(mana)) {
+                this.category2IdeaKeys.set(mana, []);
+            }
+            this.category2IdeaKeys.get(mana)!.push(modifierIdeaKey);
+            
+            ideas.push(new Idea(new Modifier(mana, modifierIdeaKey, modifierValue), costPerLevel));
+        }
+
+        return ideas;
     }
 
     public getTypeOfIdea(ideaKey: string) {
@@ -93,12 +167,12 @@ export class EU4Service {
                     if (ideaData["level_cost_" + i]) {
                         costPerLevel.push(parseInt(ideaData["level_cost_" + i]));
                     } else {
-                        costPerLevel.push(EU4Service.DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL[i-1]);
+                        costPerLevel.push(EU4Service.DEFAULT_CUSTOM_IDEA_COSTS_PER_LEVEL[i - 1]);
                     }
                 }
                 const modifierIdeaKey = Object.keys(ideaData).find(k => !k.startsWith("level_cost") && k != "max_level")!;
                 const mana = category == "ADM" ? Mana.ADM : category == "DIP" ? Mana.DIP : Mana.MIL;
-                let modifierValue =  parseFloat(ideaData[modifierIdeaKey]);
+                let modifierValue = parseFloat(ideaData[modifierIdeaKey]);
                 if (isNaN(modifierValue)) {
                     modifierValue = 1;
                 }
@@ -109,7 +183,7 @@ export class EU4Service {
     }
 
     public getIdeaIconImageUrl(ideaKey: string) {
-        return this.rootUrl + "gfx/ideas/" + ideaKey + ".webp";
+        return "https://codingafterdark.de/mc/ideas/data/icons/" + ideaKey + ".webp";
     }
 
     public getCustomIdeas() {

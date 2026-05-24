@@ -30,7 +30,7 @@
           }
           @if (index === 2) {
             <div>
-              @for (pair of ideaLocalisations; track pair; let i = $index) {
+              @for (pair of ideaLocalisations; track $index; let i = $index) {
                 <div class="input-pair">
                   <div class="input-pair-top">
                     <div>{{ ( i+1) + ". Idea:"}}</div>
