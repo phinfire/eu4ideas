@@ -24,14 +24,21 @@ export class EU4Service {
     private idea2ModifierIntepretation: Map<string, NumberKind> = new Map();
     private idea2Localisation: Map<string, string> = new Map();
     private category2IdeaKeys: Map<Mana, string[]> = new Map();
+    private whitelistedModifiers: Set<string> = new Set();
 
     constructor() {
+        // Load the whitelist
+        fetch("https://codingafterdark.de/mc/ideas/data/whitelist_table.txt?" + new Date().getTime())
+            .then(response => response.text())
+            .then(text => this.parseWhitelist(text))
+            .catch(() => console.warn("Failed to load whitelist, proceeding without filtering"));
         
         fetch("https://codingafterdark.de/mc/ideas/data/custom_idea_folder.json?" + new Date().getTime())
             .then(response => response.json())
             .then(json => {
                 const ideas = this.extractIdeasFromFolderJson(json);
                 for (let idea of ideas) {
+                    console.log("Adding idea: ", idea.getKey());
                     this.ideas.set(idea.getKey(), idea);
                 }
                 console.log("IDEAS: ", this.ideas);
@@ -93,18 +100,61 @@ export class EU4Service {
 
             for (const categoryKey of Object.keys(folder)) {
                 const categoryData = folder[categoryKey];
-                const ideas = this.extractIdeaFromIdeaJson(categoryData);
-                allIdeas.push(...ideas);
+                const result = this.extractIdeaFromIdeaJson(categoryData);
+                allIdeas.push(...result.ideas);
+                
+                // Apply side effects from metadata
+                result.metadata.localisations.forEach((value, key) => {
+                    this.idea2Localisation.set(key, value);
+                });
+                result.metadata.interpretations.forEach((value, key) => {
+                    this.idea2ModifierIntepretation.set(key, value);
+                });
+                result.metadata.categoryKeys.forEach((value, key) => {
+                    if (!this.category2IdeaKeys.has(key)) {
+                        this.category2IdeaKeys.set(key, []);
+                    }
+                    this.category2IdeaKeys.get(key)!.push(...value);
+                });
             }
         }
 
         return allIdeas;
     }
 
+    private parseWhitelist(text: string): void {
+        const lines = text.split('\n');
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            const parts = line.split(';');
+            if (parts.length > 0) {
+                const modifier = parts[0].trim();
+                if (modifier) {
+                    this.whitelistedModifiers.add(modifier);
+                }
+            }
+            console.log("Whitelist line parsed:", line);
+        }
+        console.log("Whitelist loaded with", this.whitelistedModifiers.size, "modifiers");
+    }
+
+    private isWhitelisted(modifierKey: string): boolean {
+        // If whitelist is empty (still loading), allow all for now
+        if (this.whitelistedModifiers.size === 0) {
+            return true;
+        }
+        return this.whitelistedModifiers.has(modifierKey);
+    }
+
     private extractIdeaFromIdeaJson(json: any) {
         const ideas: Idea[] = [];
+        const localisations = new Map<string, string>();
+        const interpretations = new Map<string, NumberKind>();
+        const categoryKeys = new Map<Mana, string[]>();
+        
         const category = json.category;
         const mana = category == "ADM" ? Mana.ADM : category == "DIP" ? Mana.DIP : Mana.MIL;
+        
         for (const ideaKey of Object.keys(json).filter(k => k !== "category")) {
             const ideaData = json[ideaKey];
             const maxLevel = ideaData.max_level ? parseInt(ideaData.max_level) : 4;
@@ -127,24 +177,30 @@ export class EU4Service {
                 continue;
             }
 
+            // Only add if whitelisted
+            if (!this.isWhitelisted(modifierIdeaKey)) {
+                console.warn(`Skipping idea "${ideaKey}" with modifier "${modifierIdeaKey}" as it is not whitelisted`);
+                continue;
+            }
+
             let modifierValue = parseFloat(ideaData[modifierIdeaKey]);
             if (isNaN(modifierValue)) {
                 modifierValue = 1;
             }
             
-            // Populate metadata maps for waitUntilReady()
-            this.idea2Localisation.set(modifierIdeaKey, ideaKey);
-            this.idea2ModifierIntepretation.set(modifierIdeaKey, NumberKind.ADDITIVE);
+            // Collect metadata for caller to apply
+            localisations.set(modifierIdeaKey, ideaKey);
+            interpretations.set(modifierIdeaKey, NumberKind.ADDITIVE);
             
-            if (!this.category2IdeaKeys.has(mana)) {
-                this.category2IdeaKeys.set(mana, []);
+            if (!categoryKeys.has(mana)) {
+                categoryKeys.set(mana, []);
             }
-            this.category2IdeaKeys.get(mana)!.push(modifierIdeaKey);
+            categoryKeys.get(mana)!.push(modifierIdeaKey);
             
             ideas.push(new Idea(new Modifier(mana, modifierIdeaKey, modifierValue), costPerLevel));
         }
 
-        return ideas;
+        return { ideas, metadata: { localisations, interpretations, categoryKeys } };
     }
 
     public getTypeOfIdea(ideaKey: string) {

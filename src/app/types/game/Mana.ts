@@ -11,7 +11,7 @@ export class Mana {
     }
 
     public getIconUrl(): string {
-        return "https://codingafterdark.de/mc/ideas/" + this.iconFile;
+        return "https://codingafterdark.de/mc/ideas/data/" + this.iconFile;
     }
 
     public getName(): string {
