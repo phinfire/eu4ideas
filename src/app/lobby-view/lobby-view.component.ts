@@ -220,7 +220,7 @@ export class LobbyViewComponent implements AfterViewInit {
             }
         }
         const title = "Bündnispunkte für die "+ userInput + ". Session";
-        this.exportService.exportAsImage(title, plotables, true).then((canvas) => {
+        this.exportService.exportAsImage(title, plotables, true, "github.com/phinfire").then((canvas) => {
             canvas.toBlob((blob) => {
                 /*
                 if (blob) {

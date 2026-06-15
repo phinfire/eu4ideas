@@ -42,7 +42,8 @@ export class ExportService {
     public async exportAsImage<T extends IPlotable>(
         title: string,
         entries: T[],
-        includePlayer: boolean
+        includePlayer: boolean,
+        watermark?: string
     ) {
         await document.fonts.load(`10px ${this.fontFamily}`);
         await document.fonts.ready;
@@ -199,6 +200,17 @@ export class ExportService {
                 const playerName = this.truncateString(entry.getPlayerName(), truncateStringTo);
                 ctx.fillText(playerName, accumulatedOffsets[5], yCenter);
             }
+        }
+
+        if (watermark) {
+            const watermarkFontSize = fontSize * 0.6;
+            ctx.font = `${watermarkFontSize}px ${this.fontFamily}`;
+            ctx.textAlign = "right";
+            ctx.textBaseline = "bottom";
+            ctx.globalAlpha = 0.35;
+            ctx.fillStyle = this.textColor;
+            ctx.fillText(watermark, canvas.width - thick - 6, canvas.height - thick - 6);
+            ctx.globalAlpha = 1;
         }
 
         canvas.style.height = "calc(100vh - 100px)";
